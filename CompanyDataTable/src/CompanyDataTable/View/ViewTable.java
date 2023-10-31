@@ -14,11 +14,14 @@ public class ViewTable extends JFrame implements ActionListener {
     public static void main(String[] args) {
         new ViewTable(); // main 함수 실행시 GUI 생성과 동시에 기능 동작 실시
     }
+    // AddAction 객체 선언 시작
+    AddAction addAction;
+    // AddAction 객체 선언 종료
+
     // JDBC를 위한 필드 선언 시작
     Connection conn;
     Statement statement;
     ResultSet resultSet;
-    Insert insert = new Insert();
     // JDBC를 위한 필드 선언 종료
 
     // ComboBox 선언 시작
@@ -29,8 +32,8 @@ public class ViewTable extends JFrame implements ActionListener {
     // ComboBox 선언 종료
 
     // User로부터 text input 받을 변수 선언 시작
-    JTextField setSalary_Bdate_employee = new JTextField(10); // User의 text input을 받는다
-    JTextField update_Salary_Address_Sex = new JTextField(10);
+    JTextField setInfo = new JTextField(10);
+    JTextField updateAddressOrSexOrSalary = new JTextField(10);
     // User로부터 text input 받을 변수 선언 종료
 
     // CheckBox 이름과 초기 상태 선언 시작
@@ -54,76 +57,78 @@ public class ViewTable extends JFrame implements ActionListener {
     // 테이블 형식으로 데이터를 관리하기 위해 테이블 선언 종료
 
     // 업데이트 했을때 사용하기 위한 프로퍼티 선언 시작
-    int BOOLEAN_COLUMN = 0;
-    int NAME_COLUMN = 0;
-    int SALARY_COLUMN = 0;
-    int ADDRESS_COLUMN = 0;
-    int SEX_COLUMN = 0;
-    int DEPT_SALARY_COLUMN_R = 0;
-    int DEPT_SALARY_COLUMN_A = 0;
-    int DEPT_SALARY_COLUMN_H = 0;
-    String dShow;
+    int selectCol = 0;
+    int nameCol = 0;
+    int salaryCol = 0;
+    int addressCol = 0;
+    int sexCol = 0;
+    String departmentCol;
+    int salaryOfResearchDepartment = 0;
+    int salaryOfAdministrationDepartment = 0;
+    int salaryOfHeadquartersDepartment = 0;
     // 업데이트 했을때 사용하기 위한 프로퍼티 선언 종료
 
 
     // 화면에 보이는 버튼 선언 시작
-    JButton Search_Button = new JButton("검색");	// 검색 버튼
-    JButton Update_Button = new JButton("UPDATE");	// 버튼들
-    JButton Delete_Button = new JButton("선택한 데이터 삭제");
-    JButton Insert_Button = new JButton("직원 추가");
+    JButton searchButton = new JButton("Search");
+    JButton updateButton = new JButton("Update");
+    JButton deleteButton = new JButton("Delete Employee");
+    JButton addButton = new JButton("Add Employee");
     // 화면에 보이는 버튼 선언 종료
 
     // 화면에 보이는 라벨 선언 시작
-    JLabel totalEmp = new JLabel("인원수 : "); // 총 인원수를 나타내는 label
+    JLabel totalEmp = new JLabel("Total number of Employee : "); // 총 인원수를 나타내는 label
     JLabel totalCount = new JLabel(); // 총 선택된 인원수를 나타내는 label
-    JLabel empLabel = new JLabel("선택한 직원: "); // 선택된 직원의 label
+    JLabel empLabel = new JLabel("Selected Employee : "); // 선택된 직원의 label
     JLabel showSelectedEmp = new JLabel(); // 나중에 선택된 직원의 label
-    JLabel setLabel = new JLabel("수정: "); // 수정할 목록과 수정할 내용을 표시하는 label
+    JLabel setLabel = new JLabel("Update : "); // 수정할 목록과 수정할 내용을 표시하는 label
     // 화면에 보이는 라벨 선언 종료
 
 
     // 스크롤바 선언 시작
     JPanel panel;
-    JScrollPane scrollPane;	// 스크롤 가능한 컨테이너로 제작
+    JScrollPane scrollPanel;	// 스크롤 가능한 컨테이너로 제작
     JPanel ComboBoxPanel = new JPanel();
     // 스크롤바 선언 종료
 
     // 인원수를 세기위한 변수인 count 선언 시작
     int count = 0;
     // 인원수를 세기위한 변수인 count 선언 종료
-
-    Container thisContainer = this;	// 자기 자신을 나타낸다. 즉, Container 그 자체
+    
+    // 자기 자신(즉, Container 그 자체)를 나타내는 변수인 thisContainer 선언 시작
+    Container thisContainer = this;
+    // 자기 자신(즉, Container 그 자체)를 나타내는 변수인 thisContainer 선언 종료
     public ViewTable() {
         // 테이블에 채울 내용 설정 시작
         String[] category = { "전체", "부서","성별","연봉","생일","부하직원","부양가족" };
         String[] dept = { "Research", "Administration", "Headquarters" };
         String[] sex = {"F","M"};
-        String[] update = {"Address","Sex","Salary","Dept_Salary_R", "Dept_Salary_A", "Dept_Salary_H" }; // 8번 추가
+        String[] update = {"Address","Sex","Salary","SalaryOfResearchDepartment", "SalaryOfAdministrationDepartment", "SalaryOfHeadquartersDepartment" };
         Category = new JComboBox(category);
         Dept = new JComboBox(dept);
         Sex = new JComboBox(sex);
         Update = new JComboBox(update);
         // 테이블에 채울 내용 설정 종료
 
-        // category 변화나 update가 눌리면 이벤트 처리 액션 설정 시작
-        Category.addActionListener(this);
-        Update.addActionListener(this);
-        // category 변화나 update가 눌리면 이벤트 처리 액션 설정 종료
+        // Category 혹은 Update에서 변화가 생기면 이벤트 처리 액션 설정 시작
+        Category.addActionListener((ActionListener) thisContainer);
+        Update.addActionListener((ActionListener) thisContainer);
+        // Category 혹은 Update에서 변화가 생기면 이벤트 처리 액션 설정 종료
 
         // 각각의 버튼들마다 이벤트 설정 시작
-        Search_Button.addActionListener(this);
-        Delete_Button.addActionListener(this);
-        Insert_Button.addActionListener(this);
-        Update_Button.addActionListener(this);
+        searchButton.addActionListener((ActionListener) thisContainer);
+        deleteButton.addActionListener((ActionListener) thisContainer);
+        addButton.addActionListener((ActionListener) thisContainer);
+        updateButton.addActionListener((ActionListener) thisContainer);
         // 각각의 버튼들마다 이벤트 설정 종료
 
         // layout 설정 시작
-        ComboBoxPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        ComboBoxPanel.add(new JLabel("검색 범위 "));
+        ComboBoxPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        ComboBoxPanel.add(new JLabel("Search Category : "));
         ComboBoxPanel.add(Category);
         JPanel CheckBoxPanel = new JPanel();
-        CheckBoxPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        CheckBoxPanel.add(new JLabel("검색 항목 "));
+        CheckBoxPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        CheckBoxPanel.add(new JLabel("Check Category : "));
         CheckBoxPanel.add(check1);
         CheckBoxPanel.add(check2);
         CheckBoxPanel.add(check3);
@@ -132,52 +137,54 @@ public class ViewTable extends JFrame implements ActionListener {
         CheckBoxPanel.add(check6);
         CheckBoxPanel.add(check7);
         CheckBoxPanel.add(check8);
-        CheckBoxPanel.add(Search_Button);
-        JPanel InsertPanel = new JPanel();
-        InsertPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        InsertPanel.add(Insert_Button);
-        JPanel CheckBoxInsertPanel = new JPanel();
-        CheckBoxInsertPanel.setLayout(new BoxLayout(CheckBoxInsertPanel, BoxLayout.X_AXIS));
-        CheckBoxInsertPanel.add(CheckBoxPanel);
-        CheckBoxInsertPanel.add(InsertPanel);
-        JPanel ShowSelectedPanel = new JPanel();
-        ShowSelectedPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        empLabel.setFont(new Font("Dialog", Font.BOLD, 16));
-        showSelectedEmp.setFont(new Font("Dialog", Font.BOLD, 16));
-        dShow = "";
-        ShowSelectedPanel.add(empLabel);
-        ShowSelectedPanel.add(showSelectedEmp);
-        JPanel TotalPanel = new JPanel();
-        TotalPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        TotalPanel.add(totalEmp);
-        TotalPanel.add(totalCount);
-        JPanel UpdatePanel = new JPanel();
-        UpdatePanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        UpdatePanel.add(setLabel);
-        UpdatePanel.add(Update);
-        UpdatePanel.add(update_Salary_Address_Sex);
-        UpdatePanel.add(Update_Button);
-        JPanel DeletePanel = new JPanel();
-        DeletePanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        DeletePanel.add(Delete_Button);
-        JPanel Top = new JPanel();
-        Top.setLayout(new BoxLayout(Top, BoxLayout.Y_AXIS));
-        Top.add(ComboBoxPanel);
-        Top.add(CheckBoxInsertPanel);
-        JPanel Halfway = new JPanel();
-        Halfway.setLayout(new BoxLayout(Halfway, BoxLayout.X_AXIS));
-        Halfway.add(ShowSelectedPanel);
-        JPanel Bottom = new JPanel();
-        Bottom.setLayout(new BoxLayout(Bottom, BoxLayout.X_AXIS));
-        Bottom.add(TotalPanel);
-        Bottom.add(UpdatePanel);
-        Bottom.add(DeletePanel);
-        JPanel ShowVertical = new JPanel();
-        ShowVertical.setLayout(new BoxLayout(ShowVertical, BoxLayout.Y_AXIS));
-        ShowVertical.add(Halfway);
-        ShowVertical.add(Bottom);
-        add(Top, BorderLayout.NORTH);
-        add(ShowVertical, BorderLayout.SOUTH);
+        CheckBoxPanel.add(searchButton);
+        JPanel panelAdd = new JPanel();
+        panelAdd.setLayout(new FlowLayout(FlowLayout.LEFT));
+        panelAdd.add(addButton);
+        JPanel panelCheckboxAdd = new JPanel();
+        panelCheckboxAdd.setLayout(new BoxLayout(panelCheckboxAdd, BoxLayout.X_AXIS));
+        panelCheckboxAdd.add(CheckBoxPanel);
+        panelCheckboxAdd.add(panelAdd);
+        JPanel panelShowSelected = new JPanel();
+        panelShowSelected.setLayout(new FlowLayout(FlowLayout.LEFT));
+        empLabel.setFont(new Font("Dialog", Font.BOLD, 20));
+        showSelectedEmp.setFont(new Font("Dialog", Font.BOLD, 20));
+        departmentCol = "";
+        panelShowSelected.add(empLabel);
+        panelShowSelected.add(showSelectedEmp);
+        JPanel panelTotal = new JPanel();
+        panelTotal.setLayout(new FlowLayout(FlowLayout.LEFT));
+        totalCount.setFont(new Font("Dialog", Font.BOLD, 20));
+        panelTotal.add(totalEmp);
+        panelTotal.add(totalCount);
+        JPanel panelUpdate = new JPanel();
+        panelUpdate.setLayout(new FlowLayout(FlowLayout.CENTER));
+        panelUpdate.setFont(new Font("Dialog", Font.BOLD, 20));
+        panelUpdate.add(setLabel);
+        panelUpdate.add(Update);
+        panelUpdate.add(updateAddressOrSexOrSalary);
+        panelUpdate.add(updateButton);
+        JPanel panelDelete = new JPanel();
+        panelDelete.setLayout(new FlowLayout(FlowLayout.CENTER));
+        panelDelete.add(deleteButton);
+        JPanel panelTop = new JPanel();
+        panelTop.setLayout(new BoxLayout(panelTop, BoxLayout.Y_AXIS));
+        panelTop.add(ComboBoxPanel);
+        panelTop.add(panelCheckboxAdd);
+        JPanel panelHalfway = new JPanel();
+        panelHalfway.setLayout(new BoxLayout(panelHalfway, BoxLayout.X_AXIS));
+        panelHalfway.add(panelShowSelected);
+        JPanel panelBottom = new JPanel();
+        panelBottom.setLayout(new BoxLayout(panelBottom, BoxLayout.X_AXIS));
+        panelBottom.add(panelTotal);
+        panelBottom.add(panelUpdate);
+        panelBottom.add(panelDelete);
+        JPanel panelVertical = new JPanel();
+        panelVertical.setLayout(new BoxLayout(panelVertical, BoxLayout.Y_AXIS));
+        panelVertical.add(panelHalfway);
+        panelVertical.add(panelBottom);
+        add(panelTop, BorderLayout.NORTH);
+        add(panelVertical, BorderLayout.SOUTH);
         setTitle("Information Retrival System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1300, 600);
@@ -187,44 +194,39 @@ public class ViewTable extends JFrame implements ActionListener {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        // DB연결
+    public void actionPerformed(ActionEvent actionEvent) {
+        // JDBC Connect 시작
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // JDBC 드라이버 연결
-
-            String user = "root";
-            String pwd = "b9081620"; // 비밀번호 입력
-            String dbname = "company";
-            String url = "jdbc:mysql://localhost:3306/" + dbname + "?serverTimezone=UTC";
-
-            conn = DriverManager.getConnection(url, user, pwd);
+            Class.forName("com.mysql.cj.jdbc.Driver"); // JDBC 드라이버 연결 : Build 관리는 IntelliJ에서 실행하므로 jar파일을 다운받아서 넣어둠
+            String user = "root";   // root user
+            String password = "b9081620"; // 비밀번호 입력
+            String databaseName = "company";
+            String connectUrl = "jdbc:mysql://localhost:3306/" + databaseName;
+            conn = DriverManager.getConnection(connectUrl, user, password);
             System.out.println("정상적으로 연결되었습니다.");
-
-        } catch (SQLException e1) {
-            System.err.println("연결할 수 없습니다.");
-            e1.printStackTrace();
-        } catch (ClassNotFoundException e1) {
-            System.err.println("드라이버를 로드할 수 없습니다.");
-            e1.printStackTrace();
+        } catch (Exception error) {
+            System.err.println("에러가 발생하였습니다.");
+            error.printStackTrace();
         }
+        // JDBC Connect 종료
 
-        // ------------------------------------------------------------------------ //
-
+        // 첫 시작시 일단 아무것도 없는 상태로 두기 위한 설정 시작
         if (count == 1) {
             thisContainer.remove(panel);
             revalidate();
         }
+        // 첫 시작시 일단 아무것도 없는 상태로 두기 위한 설정 종료
 
-        String category_item = Category.getSelectedItem().toString();
-
-        if(category_item == "부서") {
+        // User가 고른 category에 맞는 동작 설정 시작
+        String selectedCategory = Category.getSelectedItem().toString();
+        if(selectedCategory == "부서") {
             if(ComboBoxPanel.getComponentCount() != 2) {
                 ComboBoxPanel.remove(2);
             }
             ComboBoxPanel.add(Dept);
             ComboBoxPanel.repaint();
             revalidate();
-        }else if(category_item == "성별") {
+        }else if(selectedCategory == "성별") {
             if(ComboBoxPanel.getComponentCount() != 2) {
                 System.out.println(ComboBoxPanel.getComponentCount());
                 ComboBoxPanel.remove(2);
@@ -232,30 +234,30 @@ public class ViewTable extends JFrame implements ActionListener {
             ComboBoxPanel.add(Sex);
             ComboBoxPanel.repaint();
             revalidate();
-        }else if(category_item.equals("연봉") || category_item.equals("생일")
-                || category_item.equals("부하직원") || category_item.equals("부양가족")){
+        }else if(selectedCategory.equals("연봉") || selectedCategory.equals("생일")
+                || selectedCategory.equals("부하직원") || selectedCategory.equals("부양가족")){
             if(ComboBoxPanel.getComponentCount() != 2) {
                 ComboBoxPanel.remove(2);
             }
             ComboBoxPanel.repaint();
-            ComboBoxPanel.add(setSalary_Bdate_employee);
+            ComboBoxPanel.add(setInfo);
             revalidate();
-        }else if(category_item.equals("전체")) {
+        }else if(selectedCategory.equals("전체")) {
             if(ComboBoxPanel.getComponentCount() != 2) {
                 ComboBoxPanel.remove(2);
             }
             ComboBoxPanel.repaint();
             revalidate();
         }
+        // User가 고른 category에 맞는 동작 설정 종료
 
-
-        if (e.getSource() == Search_Button) {
-            String getSalary_Bdate_employee = null;
-            String stmt;
-            if(setSalary_Bdate_employee.getText() != null) {
-                getSalary_Bdate_employee = setSalary_Bdate_employee.getText();
+        // Search Button 클릭시 동작하는 동작 설정 시작
+        if (actionEvent.getSource() == searchButton) {
+            String getInfo = null;
+            String queryStatement;
+            if(setInfo.getText() != null) {
+                getInfo = setInfo.getText();
             }
-
             if(Category.getSelectedItem().toString() == "부양가족") {
                 Head.clear();
                 Head.add(" ");
@@ -263,87 +265,63 @@ public class ViewTable extends JFrame implements ActionListener {
                 Head.add("성별");
                 Head.add("생일");
                 Head.add("관계");
-
                 String fname = null;
                 String minit = null;
                 String lname = null;
-
-                int name_correct = 1;
-
+                int nameCorrect = 1;
                 try {
-                    String[] name = getSalary_Bdate_employee.split(" ");
+                    String[] name = getInfo.split(" ");
                     fname = name[0];
                     minit = name[1];
                     lname = name[2];
-                }catch(Exception e3) {
-                    name_correct = 0;
-                    JOptionPane.showMessageDialog(null, "이름을 fname minit lname 순으로 정확하게 입력해주세요.");
+                }catch(Exception error) {
+                    nameCorrect = 0;
+                    JOptionPane.showMessageDialog(null, "부양가족의 이름을 'fname(공백)minit(공백)lname'의 형식에 맞게 정확하게 입력해주세요.");
                 }
-
-
-
-                stmt = "select d.dependent_name, d.sex,d.bdate,d.relationship from employee s, dependent d where s.ssn = d.essn";
-                stmt += " and s.fname = \"" +fname + "\""+
-                        " and s.minit = \"" + minit + "\""+
-                        " and s.lname = \"" + lname + "\"" + ";";
-                setSalary_Bdate_employee.setText("");
+                queryStatement = "select d.dependent_name, d.sex,d.bdate,d.relationship from employee s, dependent d where s.ssn = d.essn";
+                queryStatement += " and s.fname = \"" +fname + "\""+ " and s.minit = \"" + minit + "\""+" and s.lname = \"" + lname + "\"" + ";";
+                setInfo.setText("");
                 model = new DefaultTableModel(Head, 0) {
                     @Override
-                    public boolean isCellEditable(int row, int column) {
-                        if (column > 0) {
-                            return true;
-                        } else {
-                            return true;
-                        }
-                    }
-                };
-
+                    public boolean isCellEditable(int row, int column) { return true;}};
                 table = new JTable(model) {
                     @Override
-                    public Class getColumnClass(int column) {
-                        if (column == 0) {
-                            return " ".getClass();
-                        } else
-                            return " ".getClass();
-                    }
-                };
+                    public Class getColumnClass(int column) { return " ".getClass();}};
 
                 showSelectedEmp.setText(" ");
-                int person_count = 0;
+                int personCount = 0;
                 try {
                     count = 1;
                     statement = conn.createStatement();
-                    resultSet = statement.executeQuery(stmt);
-                    ResultSetMetaData rsmd = resultSet.getMetaData();
-                    int columnCnt = rsmd.getColumnCount();
-                    int rowCnt = table.getRowCount();
+                    resultSet = statement.executeQuery(queryStatement);
+                    ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+                    int columnCount = resultSetMetaData.getColumnCount();
+                    int rowCount = table.getRowCount();
 
                     while (resultSet.next()) {
-                        Vector<Object> tuple = new Vector<Object>();
-                        tuple.add(" ");
-                        for (int i = 1; i < columnCnt + 1; i++) {
-                            tuple.add(resultSet.getString(rsmd.getColumnName(i)));
+                        Vector<Object> rowElement = new Vector<Object>();
+                        rowElement.add(" ");
+                        for (int i = 1; i < columnCount + 1; i++) {
+                            rowElement.add(resultSet.getString(resultSetMetaData.getColumnName(i)));
                         }
-                        model.addRow(tuple);
-                        rowCnt++;
-                        person_count++;
+                        model.addRow(rowElement);
+                        rowCount++;
+                        personCount++;
                     }
-                    totalCount.setText(String.valueOf(rowCnt));
-
-                } catch (SQLException ee) {
-                    System.out.println("actionPerformed err : " + ee);
-                    ee.printStackTrace();
-
+                    totalCount.setText(String.valueOf(rowCount));
+                } catch (SQLException error) {
+                    System.out.println("actionPerformed err : " + error);
+                    error.printStackTrace();
                 }
 
-                if(name_correct == 1){															// 여기부터 추가
-                    if(person_count == 0) {
-                        JOptionPane.showMessageDialog(null, "부양가족이 없습니다.");
+                if(nameCorrect == 1){
+                    if(personCount == 0) {
+                        JOptionPane.showMessageDialog(null, "선택한 직원에게 딸려있는 부양가족은 없습니다.");
                     }else {
                         panel = new JPanel();
-                        scrollPane = new JScrollPane(table);
-                        scrollPane.setPreferredSize(new Dimension(1100, 400));
-                        panel.add(scrollPane);
+                        scrollPanel = new JScrollPane(table);
+                        scrollPanel.setPreferredSize(new Dimension(1200, 500));
+                        panel.add(scrollPanel);
                         add(panel, BorderLayout.CENTER);
                         revalidate();
                     }
@@ -353,97 +331,95 @@ public class ViewTable extends JFrame implements ActionListener {
                 if (check1.isSelected() || check2.isSelected() || check3.isSelected() || check4.isSelected() || check5.isSelected()
                         || check6.isSelected() || check7.isSelected() || check8.isSelected()) {
                     Head.clear();
-                    Head.add("선택");
+                    Head.add("Select");
 
-                    stmt = "select";
+                    queryStatement = "select";
                     if (check1.isSelected()) {
-                        stmt += " concat(e.fname,' ', e.minit,' ', e.lname,' ') as Name";
+                        queryStatement += " concat(e.fname,' ', e.minit,' ', e.lname,' ') as Name";
                         Head.add("NAME");
                     }
                     if (check2.isSelected()) {
                         if (!check1.isSelected())
-                            stmt += " e.ssn";
+                            queryStatement += " e.ssn";
                         else
-                            stmt += ", e.ssn";
+                            queryStatement += ", e.ssn";
                         Head.add("SSN");
                     }
                     if (check3.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected())
-                            stmt += " e.bdate";
+                            queryStatement += " e.bdate";
                         else
-                            stmt += ", e.bdate";
+                            queryStatement += ", e.bdate";
                         Head.add("BDATE");
                     }
                     if (check4.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected() && !check3.isSelected())
-                            stmt += " e.address";
+                            queryStatement += " e.address";
                         else
-                            stmt += ", e.address";
+                            queryStatement += ", e.address";
                         Head.add("ADDRESS");
                     }
                     if (check5.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected() && !check3.isSelected() && !check4.isSelected())
-                            stmt += " e.sex";
+                            queryStatement += " e.sex";
                         else
-                            stmt += ", e.sex";
+                            queryStatement += ", e.sex";
                         Head.add("SEX");
                     }
                     if (check6.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected() && !check3.isSelected() && !check4.isSelected()
                                 && !check5.isSelected())
-                            stmt += " e.salary";
+                            queryStatement += " e.salary";
                         else
-                            stmt += ", e.salary";
+                            queryStatement += ", e.salary";
                         Head.add("SALARY");
                     }
                     if (check7.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected() && !check3.isSelected() && !check4.isSelected() && !check5.isSelected()
                                 && !check6.isSelected())
-                            stmt += " concat(s.fname, ' ', s.minit, ' ',s.lname,' ') as Supervisor ";
+                            queryStatement += " concat(s.fname, ' ', s.minit, ' ',s.lname,' ') as Supervisor ";
                         else
-                            stmt += ", concat(s.fname, ' ', s.minit, ' ',s.lname,' ') as Supervisor ";
+                            queryStatement += ", concat(s.fname, ' ', s.minit, ' ',s.lname,' ') as Supervisor ";
                         Head.add("SUPERVISOR");
                     }
                     if (check8.isSelected()) {
                         if (!check1.isSelected() && !check2.isSelected() && !check3.isSelected() && !check4.isSelected() && !check5.isSelected()
                                 && !check6.isSelected() && !check7.isSelected())
-                            stmt += " dname";
+                            queryStatement += " dname";
                         else
-                            stmt += ", dname";
+                            queryStatement += ", dname";
                         Head.add("DEPARTMENT");
                     }
-                    stmt += " from employee e left outer join employee s ";
-                    stmt += "on e.super_ssn=s.ssn, department where e.dno = dnumber";
-
+                    queryStatement += " from employee e left outer join employee s ";
+                    queryStatement += "on e.super_ssn=s.ssn, department where e.dno = dnumber";
                     if (Category.getSelectedItem().toString() == "부서") {
-
                         if (Dept.getSelectedItem().toString() == "Research")
-                            stmt += " and dname = \"Research\";";
+                            queryStatement += " and dname = \"Research\";";
                         else if (Dept.getSelectedItem().toString() == "Administration")
-                            stmt += " and dname = \"Administration\";";
+                            queryStatement += " and dname = \"Administration\";";
                         else if (Dept.getSelectedItem().toString() == "Headquarters")
-                            stmt += " and dname = \"Headquarters\";";
+                            queryStatement += " and dname = \"Headquarters\";";
                     }else if(Category.getSelectedItem().toString() == "성별") {
                         if(Sex.getSelectedItem().toString() == "F") {
-                            stmt += " and e.SEX = \"F\";";
+                            queryStatement += " and e.SEX = \"F\";";
                         }else if(Sex.getSelectedItem().toString() == "M") {
-                            stmt += " and e.SEX = \"M\";";
+                            queryStatement += " and e.SEX = \"M\";";
                         }
                     }else if(Category.getSelectedItem().toString() == "연봉") {
-                        stmt += " and e.salary >=" +getSalary_Bdate_employee + ";";
-                        setSalary_Bdate_employee.setText("");
+                        queryStatement += " and e.salary >=" + getInfo + ";";
+                        setInfo.setText("");
                     }else if(Category.getSelectedItem().toString() == "생일") {
-                        stmt += " and e.bdate like \"____-" + getSalary_Bdate_employee + "%\";";
-                        setSalary_Bdate_employee.setText("");
+                        queryStatement += " and e.bdate like \"____-" + getInfo + "%\";";
+                        setInfo.setText("");
                     }else if(Category.getSelectedItem().toString() == "부하직원") {
-                        String[] name = getSalary_Bdate_employee.split(" ");
+                        String[] name = getInfo.split(" ");
                         String fname = name[0];
                         String minit = name[1];
                         String lname = name[2];
-                        stmt += " and s.fname = \"" +fname + "\""+
+                        queryStatement += " and s.fname = \"" +fname + "\""+
                                 " and s.minit = \"" + minit + "\""+
                                 " and s.lname = \"" + lname + "\"" + ";";
-                        setSalary_Bdate_employee.setText("");
+                        setInfo.setText("");
                     }
 
                     model = new DefaultTableModel(Head, 0) {
@@ -458,22 +434,22 @@ public class ViewTable extends JFrame implements ActionListener {
                     };
                     for (int i = 0; i < Head.size(); i++) {
                         if (Head.get(i) == "NAME") {
-                            NAME_COLUMN = i;
+                            nameCol = i;
                         } else if (Head.get(i) == "SALARY") {
-                            SALARY_COLUMN = i;
+                            salaryCol = i;
                         }else if (Head.get(i) == "ADDRESS") {
-                            ADDRESS_COLUMN = i;
+                            addressCol = i;
                         }else if (Head.get(i) == "SEX") {
-                            SEX_COLUMN = i;
-                        } else if (Head.get(i) == "DEPT_SALARY_R") {
-                            DEPT_SALARY_COLUMN_R = i;// 8번 추가
-                        } else if (Head.get(i) == "DEPT_SALARY_A") {
-                            DEPT_SALARY_COLUMN_A = i;// 8번 추가
-                        } else if (Head.get(i) == "DEPT_SALARY_H") {
-                            DEPT_SALARY_COLUMN_H = i;// 8번 추가
+                            sexCol = i;
+                        } else if (Head.get(i) == "SalaryOfResearchDepartment") {
+                            salaryOfResearchDepartment = i;
+                        } else if (Head.get(i) == "SalaryOfAdministrationDepartment") {
+                            salaryOfAdministrationDepartment = i;
+                        } else if (Head.get(i) == "SalaryOfHeadquartersDepartment") {
+                            salaryOfHeadquartersDepartment = i;
                         }
-
                     }
+
                     table = new JTable(model) {
                         @Override
                         public Class getColumnClass(int column) {
@@ -483,17 +459,14 @@ public class ViewTable extends JFrame implements ActionListener {
                                 return String.class;
                         }
                     };
-
                     showSelectedEmp.setText(" ");
-
                     try {
                         count = 1;
                         statement = conn.createStatement();
-                        resultSet = statement.executeQuery(stmt);
+                        resultSet = statement.executeQuery(queryStatement);
                         ResultSetMetaData rsmd = resultSet.getMetaData();
                         int columnCnt = rsmd.getColumnCount();
                         int rowCnt = table.getRowCount();
-
                         while (resultSet.next()) {
                             Vector<Object> tuple = new Vector<Object>();
                             tuple.add(false);
@@ -504,65 +477,59 @@ public class ViewTable extends JFrame implements ActionListener {
                             rowCnt++;
                         }
                         totalCount.setText(String.valueOf(rowCnt));
-
-                    } catch (SQLException ee) {
-                        System.out.println("actionPerformed err : " + ee);
-                        ee.printStackTrace();
+                    } catch (SQLException error) {
+                        System.out.println("actionPerformed err : " + error);
+                        error.printStackTrace();
 
                     }
                     panel = new JPanel();
-                    scrollPane = new JScrollPane(table);
+                    scrollPanel = new JScrollPane(table);
                     table.getModel().addTableModelListener(event -> {
                                 int row = event.getFirstRow();
                                 int column = event.getColumn();
-                                if (column == BOOLEAN_COLUMN) {
+                                if (column == selectCol) {
                                     TableModel model = (TableModel) event.getSource();
                                     String columnName = model.getColumnName(1);
                                     Boolean checked = (Boolean) model.getValueAt(row, column);
                                     if (columnName == "NAME") {
                                         if (checked) {
-                                            dShow = "";
+                                            departmentCol = "";
                                             for (int i = 0; i < table.getRowCount(); i++) {
                                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                                    dShow += (String) table.getValueAt(i, NAME_COLUMN) + "    ";
+                                                    departmentCol += (String) table.getValueAt(i, nameCol) + "    ";
 
                                                 }
                                             }
-                                            showSelectedEmp.setText(dShow);
+                                            showSelectedEmp.setText(departmentCol);
                                         } else {
-                                            dShow = "";
+                                            departmentCol = "";
                                             for (int i = 0; i < table.getRowCount(); i++) {
                                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                                    dShow += (String) table.getValueAt(i, 1) + "    ";
+                                                    departmentCol += (String) table.getValueAt(i, 1) + "    ";
                                                 }
                                             }
-                                            showSelectedEmp.setText(dShow);
+                                            showSelectedEmp.setText(departmentCol);
                                         }
                                     }
                                 }
                             }
                     );
-
-
-
-                    scrollPane.setPreferredSize(new Dimension(1100, 400));
-                    panel.add(scrollPane);
+                    scrollPanel.setPreferredSize(new Dimension(1200, 500));
+                    panel.add(scrollPanel);
                     add(panel, BorderLayout.CENTER);
                     revalidate();
-
                 } else {
-                    JOptionPane.showMessageDialog(null, "검색 항목을 한개 이상 선택하세요.");
+                    JOptionPane.showMessageDialog(null, "검색하고자 하는 항목을 반드시 한 개이상 체크해주세요.");
                 }
             }
-
         }
+        // Search Button 클릭시 동작하는 동작 설정 종료
 
-        // DELETE
-        if (e.getSource() == Delete_Button) {
+
+        // Delete Button 클릭시 동작하는 동작 설정 시작
+        if (actionEvent.getSource() == deleteButton) {
             Vector<String> delete_ssn = new Vector<String>();
-
             try {
-
                 String columnName = model.getColumnName(2);
                 if (columnName == "SSN") {
                     for (int i = 0; i < table.getRowCount(); i++) {
@@ -584,76 +551,66 @@ public class ViewTable extends JFrame implements ActionListener {
                         p.clearParameters();
                         p.setString(1, String.valueOf(delete_ssn.get(i)));
                         p.executeUpdate();
-
                     }
                 } else {
-                    JOptionPane.showMessageDialog(null, "삭제 작업을 진행하시려면 NAME, SSN 항목을 모두 체크해주세요.");
+                    JOptionPane.showMessageDialog(null, "NAME과 SSN을 모두 다 체크하셔야 삭제 작업 진행이 가능합니다.");
                 }
-
                 showSelectedEmp.setText(" ");
-
-            } catch (SQLException e1) {
-                System.out.println("actionPerformed err : " + e1);
-                e1.printStackTrace();
+            } catch (SQLException error) {
+                System.out.println("actionPerformed err : " + error);
+                error.printStackTrace();
             }
             panel = new JPanel();
-            scrollPane = new JScrollPane(table);
+            scrollPanel = new JScrollPane(table);
             table.getModel().addTableModelListener(event -> {
                         int row = event.getFirstRow();
                         int column = event.getColumn();
-                        if (column == BOOLEAN_COLUMN) {
+                        if (column == selectCol) {
                             TableModel model = (TableModel) event.getSource();
                             String columnName = model.getColumnName(1);
                             Boolean checked = (Boolean) model.getValueAt(row, column);
                             if (columnName == "NAME") {
                                 if (checked) {
-                                    dShow = "";
+                                    departmentCol = "";
                                     for (int i = 0; i < table.getRowCount(); i++) {
                                         if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                            dShow += (String) table.getValueAt(i, NAME_COLUMN) + "    ";
-
+                                            departmentCol += (String) table.getValueAt(i, nameCol) + "    ";
                                         }
                                     }
-                                    showSelectedEmp.setText(dShow);
+                                    showSelectedEmp.setText(departmentCol);
                                 } else {
-                                    dShow = "";
+                                    departmentCol = "";
                                     for (int i = 0; i < table.getRowCount(); i++) {
                                         if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                            dShow += (String) table.getValueAt(i, 1) + "    ";
+                                            departmentCol += (String) table.getValueAt(i, 1) + "    ";
                                         }
                                     }
-                                    showSelectedEmp.setText(dShow);
+                                    showSelectedEmp.setText(departmentCol);
                                 }
                             }
                         }
                     }
             );
-
-
-
-            scrollPane.setPreferredSize(new Dimension(1100, 400));
-            panel.add(scrollPane);
+            scrollPanel.setPreferredSize(new Dimension(1200, 500));
+            panel.add(scrollPanel);
             add(panel, BorderLayout.CENTER);
             revalidate();
+        }
+        // Delete Button 클릭시 동작하는 동작 설정 시작
 
-        } // DELETE 끝
-
-        // UPDATE
-
-        if (e.getSource() == Update_Button) {
-
+        // Update Button 클릭시 동작하는 동작 설정 시작
+        if (actionEvent.getSource() == updateButton) {
             Vector<String> update_ssn = new Vector<String>();
             try {
                 String columnName = model.getColumnName(2);
-
                 System.out.println(columnName);
                 if (columnName == "SSN") {
                     if(Update.getSelectedItem().toString() == "Salary") {
-                        if(model.getColumnName(SALARY_COLUMN) == "SALARY") {
+                        if(model.getColumnName(salaryCol) == "SALARY") {
                             for (int i = 0; i < table.getRowCount(); i++) {
                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                    String updateSalary = update_Salary_Address_Sex.getText();
-                                    table.setValueAt(Double.parseDouble(updateSalary), i, SALARY_COLUMN);
+                                    String updateSalary = updateAddressOrSexOrSalary.getText();
+                                    table.setValueAt(Double.parseDouble(updateSalary), i, salaryCol);
                                     String updateStmt = "UPDATE EMPLOYEE SET Salary=? , modified=SYSDATE() WHERE Ssn=?";
                                     PreparedStatement p = conn.prepareStatement(updateStmt);
                                     p.clearParameters();
@@ -663,16 +620,14 @@ public class ViewTable extends JFrame implements ActionListener {
                                 }
                             }
                         }else {
-                            JOptionPane.showMessageDialog(null, "수정 작업을 위해 SALARY를 체크해주세요");
+                            JOptionPane.showMessageDialog(null, "SALARY에 대한 수정 작업을 진행하기 위해 SALARY를 체크해주세요");
                         }
-
                     }else if(Update.getSelectedItem().toString() == "Sex") {
-                        if(model.getColumnName(SEX_COLUMN) == "SEX") {
+                        if(model.getColumnName(sexCol) == "SEX") {
                             for (int i = 0; i < table.getRowCount(); i++) {
                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                    //update_ssn.add((String) table.getValueAt(i, 2));
-                                    String updateSalary = update_Salary_Address_Sex.getText();
-                                    table.setValueAt(updateSalary, i, SEX_COLUMN);
+                                    String updateSalary = updateAddressOrSexOrSalary.getText();
+                                    table.setValueAt(updateSalary, i, sexCol);
                                     String updateStmt = "UPDATE EMPLOYEE SET SEX=? , modified=SYSDATE() WHERE Ssn=?";
                                     PreparedStatement p = conn.prepareStatement(updateStmt);
                                     p.clearParameters();
@@ -682,16 +637,15 @@ public class ViewTable extends JFrame implements ActionListener {
                                 }
                             }
                         }else {
-                            JOptionPane.showMessageDialog(null, "수정 작업을 위해 SEX를 체크해주세요");
+                            JOptionPane.showMessageDialog(null, "SEX에 대한 수정 작업을 진행하기 위해 SEX를 체크해주세요");
                         }
 
                     }else if(Update.getSelectedItem().toString() == "Address") {
-                        if(model.getColumnName(ADDRESS_COLUMN) == "ADDRESS") {
+                        if(model.getColumnName(addressCol) == "ADDRESS") {
                             for (int i = 0; i < table.getRowCount(); i++) {
                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                    //update_ssn.add((String) table.getValueAt(i, 2));
-                                    String updateSalary = update_Salary_Address_Sex.getText();
-                                    table.setValueAt(updateSalary, i, ADDRESS_COLUMN);
+                                    String updateSalary = updateAddressOrSexOrSalary.getText();
+                                    table.setValueAt(updateSalary, i, addressCol);
                                     String updateStmt = "UPDATE EMPLOYEE SET Address=? , modified=SYSDATE() WHERE Ssn=?";
                                     PreparedStatement p = conn.prepareStatement(updateStmt);
                                     p.clearParameters();
@@ -701,126 +655,122 @@ public class ViewTable extends JFrame implements ActionListener {
                                 }
                             }
                         }else {
-                            JOptionPane.showMessageDialog(null, "수정 작업을 위해 ADDRESS를 체크해주세요");
+                            JOptionPane.showMessageDialog(null, "ADDRESS 대한 수정 작업을 진행하기 위해 ADDRESS를 체크해주세요");
                         }
-                    }else if (Update.getSelectedItem().toString() == "Dept_Salary_R") {// 부서별로 월급 일괄 수정_Research
+                    }else if (Update.getSelectedItem().toString() == "SalaryOfResearchDepartment") {
                         for (int i = 0; i < table.getRowCount(); i++) {
                             if (table.getValueAt(i, 8).toString().equals("Research")) {
-                                String updateSalary = update_Salary_Address_Sex.getText();
-                                table.setValueAt(Double.parseDouble(updateSalary), i, SALARY_COLUMN);
+                                String updateSalary = updateAddressOrSexOrSalary.getText();
+                                table.setValueAt(Double.parseDouble(updateSalary), i, salaryCol);
                                 String ex = "Research";
                                 String updateStmt = "UPDATE EMPLOYEE JOIN DEPARTMENT ON Dno = Dnumber SET Salary=? , modified=SYSDATE() WHERE Dname=?";
                                 PreparedStatement p = conn.prepareStatement(updateStmt);
                                 p.clearParameters();
                                 p.setString(1, updateSalary);
                                 p.setString(2, ex);
-                                // System.out.println(updateSalary);
                                 p.executeUpdate();
                             }
                         }
-                    } else if (Update.getSelectedItem().toString() == "Dept_Salary_A") { // 부서별로 월급 일괄 수정_Administration
+                    } else if (Update.getSelectedItem().toString() == "SalaryOfAdministrationDepartment") {
                         for (int i = 0; i < table.getRowCount(); i++) {
                             if (table.getValueAt(i, 8).toString().equals("Administration")) {
-                                String updateSalary = update_Salary_Address_Sex.getText();
-                                table.setValueAt(Double.parseDouble(updateSalary), i, SALARY_COLUMN);
+                                String updateSalary = updateAddressOrSexOrSalary.getText();
+                                table.setValueAt(Double.parseDouble(updateSalary), i, salaryCol);
                                 String ex = "Administration";
                                 String updateStmt = "UPDATE EMPLOYEE JOIN DEPARTMENT ON Dno = Dnumber SET Salary=? , modified=SYSDATE() WHERE Dname=?";
                                 PreparedStatement p = conn.prepareStatement(updateStmt);
                                 p.clearParameters();
                                 p.setString(1, updateSalary);
                                 p.setString(2, ex);
-                                // System.out.println(updateSalary);
                                 p.executeUpdate();
 
                             }
                         }
-                    } else if (Update.getSelectedItem().toString() == "Dept_Salary_H") { // 부서별로 월급 일괄 수정_Headquarters
+                    } else if (Update.getSelectedItem().toString() == "SalaryOfHeadquartersDepartment") {
                         for (int i = 0; i < table.getRowCount(); i++) {
                             if (table.getValueAt(i, 8).toString().equals("Headquarters")) {
-                                String updateSalary = update_Salary_Address_Sex.getText();
-                                table.setValueAt(Double.parseDouble(updateSalary), i, SALARY_COLUMN);
+                                String updateSalary = updateAddressOrSexOrSalary.getText();
+                                table.setValueAt(Double.parseDouble(updateSalary), i, salaryCol);
                                 String ex = "Headquarters";
                                 String updateStmt = "UPDATE EMPLOYEE JOIN DEPARTMENT ON Dno = Dnumber SET Salary=? , modified=SYSDATE() WHERE Dname=?";
                                 PreparedStatement p = conn.prepareStatement(updateStmt);
                                 p.clearParameters();
                                 p.setString(1, updateSalary);
                                 p.setString(2, ex);
-                                // System.out.println(updateSalary);
                                 p.executeUpdate();
                             }
                         }
-
                     } else {
-                        JOptionPane.showMessageDialog(null, "수정 작업을 위해 Name과 SSN열을 체크해주시기 바랍니다.");
+                        JOptionPane.showMessageDialog(null, "NAME과 SSN에 대한 수정 작업을 진행하기 위해 NAME과 SSN를 체크해주세요");
                     }
                 }
                 showSelectedEmp.setText(" ");
-
-            } catch (SQLException e1) {
-                System.out.println("actionPerformed err : " + e1);
-                e1.printStackTrace();
+            } catch (SQLException error) {
+                System.out.println("actionPerformed err : " + error);
+                error.printStackTrace();
             }
             panel = new JPanel();
-            scrollPane = new JScrollPane(table);
+            scrollPanel = new JScrollPane(table);
             table.getModel().addTableModelListener(event -> {
                 int row = event.getFirstRow();
                 int column = event.getColumn();
-                if (column == BOOLEAN_COLUMN) {
+                if (column == selectCol) {
                     TableModel model = (TableModel) event.getSource();
                     String columnName = model.getColumnName(1);
                     Boolean checked = (Boolean) model.getValueAt(row, column);
                     if (columnName == "NAME") {
                         if (checked) {
-                            dShow = "";
+                            departmentCol = "";
                             for (int i = 0; i < table.getRowCount(); i++) {
                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                    dShow += (String) table.getValueAt(i, NAME_COLUMN) + "    ";
+                                    departmentCol += (String) table.getValueAt(i, nameCol) + "    ";
 
                                 }
                             }
-                            showSelectedEmp.setText(dShow);
+                            showSelectedEmp.setText(departmentCol);
                         } else {
-                            dShow = "";
+                            departmentCol = "";
                             for (int i = 0; i < table.getRowCount(); i++) {
                                 if (table.getValueAt(i, 0) == Boolean.TRUE) {
-                                    dShow += (String) table.getValueAt(i, 1) + "    ";
+                                    departmentCol += (String) table.getValueAt(i, 1) + "    ";
                                 }
                             }
-                            showSelectedEmp.setText(dShow);
+                            showSelectedEmp.setText(departmentCol);
                         }
                     }
                 }
             }
         );
-
-        scrollPane.setPreferredSize(new Dimension(1100, 400));
-            panel.add(scrollPane);
+        scrollPanel.setPreferredSize(new Dimension(1200, 500));
+            panel.add(scrollPanel);
             add(panel, BorderLayout.CENTER);
             revalidate();
-        } // UPDATE 끝
+        }
+        // Update Button 클릭시 동작하는 동작 설정 종료
 
-        // insert 시
-        if(e.getSource() == Insert_Button) {
-            insert = new Insert();
-            insert.button.addActionListener(this);
+
+        // Add Button 클릭시 동작하는 동작 설정 시작
+        if(actionEvent.getSource() == addButton) {
+            addAction = new AddAction();
+            addAction.button.addActionListener(this);
         }
 
-        if(this.insert != null) {
+        if(this.addAction != null) {
             String ssn = null;
-            if(e.getSource() == insert.button) {
+            if(actionEvent.getSource() == addAction.button) {
                 String text_FirstName,text_MiddleInit,text_LastName,text_Ssn,
                         text_Birthdate,text_Address,box_Sex,text_Salary,text_Super_ssn,text_Dno = "NULL";
-                ssn = insert.text_Ssn.getText();
-                text_FirstName = "'" + insert.text_FirstName.getText()+"'";
-                text_MiddleInit = "'" + insert.text_MiddleInit.getText()+"'";
-                text_LastName = "'" + insert.text_LastName.getText() + "'";
-                text_Ssn = "'" + insert.text_Ssn.getText() + "'";
-                text_Birthdate = "'" + insert.text_Birthdate.getText() + "'";
-                text_Address = "'" + insert.text_Address.getText() + "'";
-                box_Sex = "'" + insert.box_Sex.getSelectedItem().toString() + "'";
-                text_Salary = insert.text_Salary.getText();
-                text_Super_ssn = "'" + insert.text_Super_ssn.getText() + "'";
-                text_Dno = insert.text_Dno.getText();
+                ssn = addAction.inputSsn.getText();
+                text_FirstName = "'" + addAction.inputFirstName.getText()+"'";
+                text_MiddleInit = "'" + addAction.inputMiddleInit.getText()+"'";
+                text_LastName = "'" + addAction.inputLastName.getText() + "'";
+                text_Ssn = "'" + addAction.inputSsn.getText() + "'";
+                text_Birthdate = "'" + addAction.inputBirthDate.getText() + "'";
+                text_Address = "'" + addAction.inputAddress.getText() + "'";
+                box_Sex = "'" + addAction.boxSex.getSelectedItem().toString() + "'";
+                text_Salary = addAction.inputSalary.getText();
+                text_Super_ssn = "'" + addAction.inputSuperSsn.getText() + "'";
+                text_Dno = addAction.inputDno.getText();
 
                 if(text_MiddleInit.equals("'" + "'")) {
                     text_MiddleInit = "null";
@@ -838,7 +788,7 @@ public class ViewTable extends JFrame implements ActionListener {
 
                 if( isStringEmpty(text_FirstName) || isStringEmpty(text_LastName) ||
                         isStringEmpty(text_Ssn) || isStringEmpty(text_Dno)) {
-                    JOptionPane.showMessageDialog(null, "FirstName, LastName,Ssn,Dno는 비어있으면 안됩니다.");
+                    JOptionPane.showMessageDialog(null, "FirstName, LastName,Ssn,Dno Should not be NULL");
                 }else {
                     try {
                         String sql = "insert into Employee(Fname,Minit,Lname,Ssn,Bdate,Address,Sex,"
@@ -853,18 +803,16 @@ public class ViewTable extends JFrame implements ActionListener {
                                 Integer.parseInt(text_Salary)+","+
                                 text_Super_ssn+","+
                                 Integer.parseInt(text_Dno)+");";
-
                         Statement s = conn.createStatement();
                         int result = s.executeUpdate(sql);
-                        insert.dispose();
-                        JOptionPane.showMessageDialog(null, "직원 등록이 완료되었습니다.");
-                    } catch (Exception e1) {
-                        String error_string = e1.getMessage().toString();
-
+                        addAction.dispose();
+                        JOptionPane.showMessageDialog(null, "직원 추가 성공!");
+                    } catch (Exception error) {
+                        String error_string = error.getMessage().toString();
                         if(error_string.contains("Duplicate entry")) {
-                            JOptionPane.showMessageDialog(null, "Ssn이 존재합니다. 다른 Ssn을 입력해주세요.");
+                            JOptionPane.showMessageDialog(null, "Ssn이 이미 존재합니다. 다른 번호로 입력해주세요.");
                         }else if(error_string.contains("Bdate")){
-                            JOptionPane.showMessageDialog(null, "생일을 올바르게 입력해주세요");
+                            JOptionPane.showMessageDialog(null, "생일을 형식에 맞게 입력해주세요");
                         }else if(error_string.contains("For input string")){
                             JOptionPane.showMessageDialog(null, "Salary와 Dno는 숫자를 입력해야 합니다.");
                         }else if(error_string.contains("Minit")){
@@ -872,17 +820,16 @@ public class ViewTable extends JFrame implements ActionListener {
                         }else if(error_string.contains("Ssn")){
                             JOptionPane.showMessageDialog(null, "Ssn은 9자리까지만 입력 가능합니다.");
                         }else {
-                            JOptionPane.showMessageDialog(null, "다시 입력해주시기 바랍니다.");
+                            JOptionPane.showMessageDialog(null, "다시 입력하세요.");
                         }
 
                     }
 
                     try {
                         String updateStmt = "update employee set created = current_timestamp(),modified = current_timestamp() where ssn = ?;";
-
                         PreparedStatement p = conn.prepareStatement(updateStmt);
                         p.clearParameters();
-                        p.setString(1, insert.text_Ssn.getText());
+                        p.setString(1, addAction.inputSsn.getText());
                         p.executeUpdate();
                     }catch(SQLException e2) {
                         e2.printStackTrace();
@@ -891,115 +838,115 @@ public class ViewTable extends JFrame implements ActionListener {
                 }
             }
         }
+        // Add Button 클릭시 동작하는 동작 설정 종료
     }
 
     public boolean isStringEmpty(String str) {
         return str.isEmpty() || str == null;
     }
 
-    class Insert extends JFrame {
-        JButton button = new JButton("정보 추가하기");
-        JLabel set_FirstName = new JLabel("First Name :\t");
-        JTextField text_FirstName = new JTextField(10);
-        JLabel set_MiddleInit = new JLabel("Middle Init :\t");
-        JTextField text_MiddleInit = new JTextField(10);
-        JLabel set_LastName = new JLabel("Last Name :\t");
-        JTextField text_LastName = new JTextField(10);
-        JLabel set_Ssn = new JLabel("Ssn :\t\t\t\t\t\t\t\t\t\t\t\t");
-        JTextField text_Ssn = new JTextField(10);
-        JLabel set_Birthdate = new JLabel("Birthdate :\t\t\t");
-        JTextField text_Birthdate = new JTextField(10);
-        JLabel set_Address = new JLabel("Address :\t\t\t\t");
-        JTextField text_Address = new JTextField(10);
-        JLabel set_Sex = new JLabel("Sex :\t\t\t\t\t\t\t\t\t\t\t\t\t ");
-        String[] sex = {"F","M"};
-        JComboBox box_Sex = new JComboBox(sex);
+    private class AddAction extends JFrame {
+        JButton button = new JButton("Add Employee");
+        JLabel firstName = new JLabel("First Name :\t");
+        JTextField inputFirstName = new JTextField(10);
+        JLabel middleInit = new JLabel("Middle Init :\t");
+        JTextField inputMiddleInit = new JTextField(10);
+        JLabel lastName = new JLabel("Last Name :\t");
+        JTextField inputLastName = new JTextField(10);
+        JLabel ssn = new JLabel("Ssn :\t\t\t\t\t\t\t\t\t\t\t\t");
+        JTextField inputSsn = new JTextField(10);
+        JLabel birthDate = new JLabel("Birthdate :\t\t\t");
+        JTextField inputBirthDate = new JTextField(10);
+        JLabel address = new JLabel("Address :\t\t\t\t");
+        JTextField inputAddress = new JTextField(10);
+        JLabel Sex = new JLabel("Sex :\t\t\t\t\t\t\t\t\t\t\t\t\t ");
+        String[] inputSex = {"F","M"};
+        JComboBox boxSex = new JComboBox(inputSex);
 
-        JLabel set_Salary = new JLabel("Salary : \t\t\t\t\t\t\t");
-        JTextField text_Salary = new JTextField(10);
+        JLabel salary = new JLabel("Salary : \t\t\t\t\t\t\t");
+        JTextField inputSalary = new JTextField(10);
 
-        JLabel set_Super_ssn = new JLabel("Super_ssn :\t");
-        JTextField text_Super_ssn = new JTextField(10);
+        JLabel superSsn = new JLabel("Super_ssn :\t");
+        JTextField inputSuperSsn = new JTextField(10);
 
-        JLabel set_Dno = new JLabel("Dno : \t\t\t\t\t\t\t\t\t");
-        JTextField text_Dno = new JTextField(10);
-
-
-        public Insert() {
-            JPanel FirstName = new JPanel();
-            FirstName.setLayout(new FlowLayout(FlowLayout.LEFT));
-            FirstName.add(set_FirstName);
-            FirstName.add(text_FirstName);
-
-            JPanel MiddleInit = new JPanel();
-            MiddleInit.setLayout(new FlowLayout(FlowLayout.LEFT));
-            MiddleInit.add(set_MiddleInit);
-            MiddleInit.add(text_MiddleInit);
-
-            JPanel LastName = new JPanel();
-            LastName.setLayout(new FlowLayout(FlowLayout.LEFT));
-            LastName.add(set_LastName);
-            LastName.add(text_LastName);
-
-            JPanel Ssn = new JPanel();
-            Ssn.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Ssn.add(set_Ssn);
-            Ssn.add(text_Ssn);
-
-            JPanel Birthdate = new JPanel();
-            Birthdate.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Birthdate.add(set_Birthdate);
-            Birthdate.add(text_Birthdate);
-
-            JPanel Address = new JPanel();
-            Address.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Address.add(set_Address);
-            Address.add(text_Address);
-
-            JPanel Sex = new JPanel();
-            Sex.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Sex.add(set_Sex);
-            Sex.add(box_Sex);
-
-            JPanel Salary = new JPanel();
-            Salary.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Salary.add(set_Salary);
-            Salary.add(text_Salary);
-
-            JPanel Super_ssn = new JPanel();
-            Super_ssn.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Super_ssn.add(set_Super_ssn);
-            Super_ssn.add(text_Super_ssn);
-
-            JPanel Dno = new JPanel();
-            Dno.setLayout(new FlowLayout(FlowLayout.LEFT));
-            Dno.add(set_Dno);
-            Dno.add(text_Dno);
-
-            JPanel button_panel = new JPanel();
-            button_panel.setLayout(new FlowLayout(FlowLayout.CENTER));
-            button_panel.add(button);
+        JLabel dno = new JLabel("Dno : \t\t\t\t\t\t\t\t\t");
+        JTextField inputDno = new JTextField(10);
 
 
-            JPanel Top = new JPanel();
-            Top.setLayout(new BoxLayout(Top, BoxLayout.Y_AXIS));
-            Top.add(FirstName);
-            Top.add(MiddleInit);
-            Top.add(LastName);
-            Top.add(Ssn);
-            Top.add(Birthdate);
-            Top.add(Address);
-            Top.add(Sex);
-            Top.add(Salary);
-            Top.add(Super_ssn);
-            Top.add(Dno);
-            Top.add(button_panel);
+        public AddAction() {
+            JPanel firstName = new JPanel();
+            firstName.setLayout(new FlowLayout(FlowLayout.LEFT));
+            firstName.add(this.firstName);
+            firstName.add(inputFirstName);
+
+            JPanel middleInit = new JPanel();
+            middleInit.setLayout(new FlowLayout(FlowLayout.LEFT));
+            middleInit.add(this.middleInit);
+            middleInit.add(inputMiddleInit);
+
+            JPanel lastName = new JPanel();
+            lastName.setLayout(new FlowLayout(FlowLayout.LEFT));
+            lastName.add(this.lastName);
+            lastName.add(inputLastName);
+
+            JPanel ssn = new JPanel();
+            ssn.setLayout(new FlowLayout(FlowLayout.LEFT));
+            ssn.add(this.ssn);
+            ssn.add(inputSsn);
+
+            JPanel birthDate = new JPanel();
+            birthDate.setLayout(new FlowLayout(FlowLayout.LEFT));
+            birthDate.add(this.birthDate);
+            birthDate.add(inputBirthDate);
+
+            JPanel address = new JPanel();
+            address.setLayout(new FlowLayout(FlowLayout.LEFT));
+            address.add(this.address);
+            address.add(inputAddress);
+
+            JPanel sex = new JPanel();
+            sex.setLayout(new FlowLayout(FlowLayout.LEFT));
+            sex.add(this.Sex);
+            sex.add(boxSex);
+
+            JPanel salary = new JPanel();
+            salary.setLayout(new FlowLayout(FlowLayout.LEFT));
+            salary.add(this.salary);
+            salary.add(inputSalary);
+
+            JPanel superSsn = new JPanel();
+            superSsn.setLayout(new FlowLayout(FlowLayout.LEFT));
+            superSsn.add(this.superSsn);
+            superSsn.add(inputSuperSsn);
+
+            JPanel dno = new JPanel();
+            dno.setLayout(new FlowLayout(FlowLayout.LEFT));
+            dno.add(this.dno);
+            dno.add(inputDno);
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            buttonPanel.add(button);
 
 
-            add(Top, BorderLayout.CENTER);
+            JPanel top = new JPanel();
+            top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+            top.add(firstName);
+            top.add(middleInit);
+            top.add(lastName);
+            top.add(ssn);
+            top.add(birthDate);
+            top.add(address);
+            top.add(sex);
+            top.add(salary);
+            top.add(superSsn);
+            top.add(dno);
+            top.add(buttonPanel);
 
-            setTitle("직원 추가");
-            setSize(300, 500);
+            add(top, BorderLayout.CENTER);
+
+            setTitle("Add Employee");
+            setSize(500, 700);
             setLocationRelativeTo(null);
             setVisible(true);
         }
